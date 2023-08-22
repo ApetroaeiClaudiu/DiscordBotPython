@@ -46,7 +46,7 @@ class Texts(commands.Cog):
 
     @commands.command()
     async def insult(self, ctx):
-        if ctx.author.name == 'Aerith':
+        if ctx.author.name == 'Askeladd':
             await ctx.send("No insults for you !!!")
             return
         else:

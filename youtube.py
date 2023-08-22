@@ -1,16 +1,7 @@
 from pytube import YouTube
 from pytube import Channel
 import urllib.parse, urllib.request, re
-import os
 import discord
-
-def remove_all_files_from_directory():
-    dir = 'Downloads'
-    for f in os.listdir(dir):
-        os.remove(os.path.join(dir, f))
-
-def remove_file_from_directory(directory, file):
-    os.remove(os.path.join(directory, file))
 
 def get_url(prompt):
     query_string = urllib.parse.urlencode({'search_query': prompt})
