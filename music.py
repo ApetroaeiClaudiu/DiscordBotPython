@@ -86,7 +86,7 @@ class Music(commands.Cog):
                     self.songs_queue.append(source)
                     self.start_playing(ctx, source)
         except Exception as exception:
-            await ctx.send(exception)
+            await ctx.send(errorMessage)
 
     @commands.command()
     async def skip(self, ctx):
@@ -96,7 +96,7 @@ class Music(commands.Cog):
                 await ctx.send("Skipping ...")
                 self.play_next_song(ctx)
             except Exception as exception:
-                await ctx.send(exception)
+                await ctx.send(errorMessage)
         else:
             await ctx.send("No song is playing at the moment ...")
 

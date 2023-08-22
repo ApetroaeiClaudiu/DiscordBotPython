@@ -1,7 +1,3 @@
-# #py -3 main.py
-# bot = MyBot(command_prefix='!', intents=intents)
-# bot.run(token)
-
 from discord.ext import commands
 from important import Information
 from truth import Texts
