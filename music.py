@@ -7,6 +7,7 @@ from constants import *
 import utils
 import discord
 import collections
+import asyncio
 
 class Music(commands.Cog):
     def __init__(self, bot):
@@ -14,25 +15,39 @@ class Music(commands.Cog):
         self.songs_queue = collections.deque([])
 
     def start_playing(self, ctx, source):
-        ctx.voice_client.play(source['song'], after=lambda e: print(f'Player error: {e}') if e else None)
+        ctx.voice_client.play(source['song'], after=lambda e: self.play_next_song(ctx) if e is None else None)
+        asyncio.create_task(self.send_playing_message(ctx, source['title']))
 
     def play_next_song(self, ctx):
-        song = self.songs_queue[0]
-        self.start_playing(ctx, song)
+        if len(self.songs_queue) > 0:
+            previous_song = self.songs_queue.popleft()
+            utils.remove_file_from_directory('Downloads', previous_song['title'] + '.mp3')
+        
+        if len(self.songs_queue) > 0:
+            song = self.songs_queue[0]
+            self.start_playing(ctx, song)
+        else:
+            asyncio.create_task(self.send_queue_empty_message(ctx))
+
 
     def generate_new_song_message(self, title, channel, user):
         song = Embed(title="Music Player", description='A new song has been addded to the queue', color=0x990A0A)
         song.add_field(name='Music', value=title, inline=False)
         song.add_field(name='Author', value=channel, inline=False)
         song.add_field(name='Added by', value=user, inline=False)
-
         return song
     
     def generate_song_playing_message(self, title):
         song = Embed(title="Music Player", description='A song is playing', color=0x0A1E99)
         song.add_field(name='Music', value=title, inline=False)
-
         return song
+    
+    async def send_playing_message(self, ctx, title):
+        song = self.generate_song_playing_message(title)
+        await ctx.send(embed=song)
+
+    async def send_queue_empty_message(self, ctx):
+        await ctx.send("No more songs in the queue ...")
 
     @commands.command()
     async def queue(self, ctx):
@@ -61,47 +76,29 @@ class Music(commands.Cog):
                 url = utils.get_url(prompt)
                 source = utils.generate_source(url)
                 
-                if ctx.voice_client.is_playing():
+                if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
                     self.songs_queue.append(source)
                     user = ctx.author.mention
                     
                     song = self.generate_new_song_message(source['title'], source['channel'], user)
-            
                     await ctx.send(embed=song)
                 else:
                     self.songs_queue.append(source)
-                    ctx.voice_client.play(source['song'], after=lambda e: print(f'Player error: {e}') if e else None)
-                    
-                    song = self.generate_song_playing_message(source['title'])
-            
-                    await ctx.send(embed=song)
+                    self.start_playing(ctx, source)
         except Exception as exception:
             await ctx.send(exception)
 
     @commands.command()
     async def skip(self, ctx):
-        if ctx.voice_client.is_playing():
+        if ctx.voice_client.is_playing() or ctx.voice_client.is_paused():
             try:
                 ctx.voice_client.stop()
-                #retrieve the song that is playing right now and remove it from queue + the downloads directory
-                # song = self.queue.popleft()
-                # utils.remove_file_from_directory('Downloads', song[1] + '.mp3')
-                self.songs_queue.popleft() 
                 await ctx.send("Skipping ...")
-                
-                if len(self.songs_queue) == 0:
-                    await ctx.send("No more songs in the queue ...")
-                else:
-                    self.play_next_song(ctx)
+                self.play_next_song(ctx)
             except Exception as exception:
                 await ctx.send(exception)
         else:
-            self.songs_queue.popleft()
-            await ctx.send("Skipping ...")
-            if len(self.songs_queue) == 0:
-                await ctx.send("No more songs in the queue ...")
-            else:
-                self.play_next_song(ctx)
+            await ctx.send("No song is playing at the moment ...")
 
     @commands.command()
     async def volume(self, ctx, volume: int):
