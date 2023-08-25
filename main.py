@@ -3,6 +3,7 @@ from information import Information
 from file_management import *
 from texts import Texts
 from music import Music
+from random_list import Random_list
 import asyncio
 import discord
 
@@ -30,6 +31,7 @@ async def main():
         await bot.add_cog(Music(bot))
         await bot.add_cog(Texts(bot))
         await bot.add_cog(Information(bot))
+        await bot.add_cog(Random_list(bot))
         await bot.start(token)
 
 asyncio.run(main())

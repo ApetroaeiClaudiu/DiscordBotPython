@@ -10,30 +10,44 @@ from youtube import *
 import discord
 import collections
 import asyncio
+import time
 
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.songs_queue = collections.deque([])
+        self.user_cooldowns = {}
 
-    async def play_next_song_callback(self, ctx):
-        await send_playing_message(ctx, self.songs_queue[0]['title'])
-        await self.play_next_song(ctx)
-
-    def start_playing(self, ctx, source):
-        ctx.voice_client.play(source['song'], after=lambda e: asyncio.create_task(self.play_next_song_callback(ctx)) if e is None else None)
+    async def start_playing(self, ctx, source):
+        def after_play(error):
+            if error is None:
+                asyncio.create_task(self.play_next_song(ctx))
         
+        ctx.voice_client.play(source['song'], after=after_play)
+        await send_playing_message(ctx, source['title'])
 
-    def play_next_song(self, ctx):
+
+    # def start_playing(self, ctx, source):
+    #     ctx.voice_client.play(source['song'], after=lambda e: self.play_next_song(ctx) if e is None else None)
+    #     # asyncio.create_task(send_playing_message(ctx, source['title']))
+
+    async def play_next_song(self, ctx):
         if len(self.songs_queue) > 0:
             previous_song = self.songs_queue.popleft()
-            remove_file_from_directory('Downloads', previous_song['title'] + '.mp3')
+            try:
+                remove_file_from_directory('Downloads', previous_song['uuid'] + '.mp3')
+            except Exception as exception:
+                print(exception)
         
         if len(self.songs_queue) > 0:
             song = self.songs_queue[0]
-            self.start_playing(ctx, song)
+            await self.start_playing(ctx, song)
         else:
             asyncio.create_task(send_queue_empty_message(ctx))
+
+    async def release_user_from_cooldown(self, user_id):
+        await asyncio.sleep(60)  # Pauza timp de un minut
+        del self.user_cooldowns[user_id]  # Scoate utilizatorul din pauză
 
     @commands.command()
     async def queue(self, ctx):
@@ -57,6 +71,13 @@ class Music(commands.Cog):
 
     @commands.command()
     async def play(self, ctx, *, prompt):
+        if ctx.author.id in self.user_cooldowns and time.time() - self.user_cooldowns[ctx.author.id] < 60:
+            await ctx.send(timeoutMessage)
+            return
+        
+        self.user_cooldowns[ctx.author.id] = time.time()
+        asyncio.create_task(self.release_user_from_cooldown(ctx.author.id))
+
         try:
             async with ctx.typing():
                 url = get_url(prompt)
@@ -70,9 +91,9 @@ class Music(commands.Cog):
                     await ctx.send(embed=song)
                 else:
                     self.songs_queue.append(source)
-                    self.start_playing(ctx, source)
+                    await self.start_playing(ctx, source)
         except Exception as exception:
-            await ctx.send(errorMessage)
+            await ctx.send(exception)
 
     @commands.command()
     async def skip(self, ctx):
@@ -82,7 +103,7 @@ class Music(commands.Cog):
                 await ctx.send("Skipping ...")
                 self.play_next_song(ctx)
             except Exception as exception:
-                await ctx.send(errorMessage)
+                await ctx.send(exception)
         else:
             await ctx.send("No song is playing at the moment ...")
 
@@ -91,7 +112,7 @@ class Music(commands.Cog):
         if ctx.voice_client is None:
             return await ctx.send("Not connected to a voice channel.")
         
-        if ctx.message.author.server_permissions.administrator:
+        if ctx.author.guild_permissions.administrator:
             ctx.voice_client.source.volume = volume / 100
             await ctx.send(f"Changed volume to {volume}%")
         else:
@@ -104,7 +125,7 @@ class Music(commands.Cog):
                 await ctx.send("Resumed !!")
                 ctx.voice_client.resume()
             except Exception as exception:
-                await ctx.send(errorMessage)
+                await ctx.send(exception)
         else:
             await ctx.send("I wasn't playing anything before !!")
 
@@ -115,7 +136,7 @@ class Music(commands.Cog):
                 await ctx.send("Paused !!")
                 ctx.voice_client.pause()
             except Exception as exception:
-                await ctx.send(errorMessage)
+                await ctx.send(exception)
         else:
             await ctx.send("Nothing is being played at the moment !!")
 

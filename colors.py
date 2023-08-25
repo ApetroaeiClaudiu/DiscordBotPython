@@ -1,0 +1,4 @@
+cyan = 0x00CCFF
+pink = 0xCC0066
+dark_red = 0x990A0A
+dark_blue = 0x0A1E99
