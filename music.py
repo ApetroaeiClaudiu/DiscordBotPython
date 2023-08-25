@@ -16,9 +16,13 @@ class Music(commands.Cog):
         self.bot = bot
         self.songs_queue = collections.deque([])
 
+    async def play_next_song_callback(self, ctx):
+        await send_playing_message(ctx, self.songs_queue[0]['title'])
+        await self.play_next_song(ctx)
+
     def start_playing(self, ctx, source):
-        ctx.voice_client.play(source['song'], after=lambda e: self.play_next_song(ctx) if e is None else None)
-        asyncio.create_task(send_playing_message(ctx, source['title']))
+        ctx.voice_client.play(source['song'], after=lambda e: asyncio.create_task(self.play_next_song_callback(ctx)) if e is None else None)
+        
 
     def play_next_song(self, ctx):
         if len(self.songs_queue) > 0:
