@@ -25,7 +25,7 @@ class Information(commands.Cog):
         embed_message.add_field(name="!clear_list", value="Clear the bot's current list", inline=False)
         embed_message.add_field(name="!show_list", value="Show the bot's current list", inline=False)
         
-        ctx.send(embed=embed_message)
+        await ctx.send(embed=embed_message)
         return
 
     @commands.command()
