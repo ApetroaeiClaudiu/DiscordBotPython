@@ -1,1 +1,7 @@
 /token.txt
+/Downloads
+/__pycache__
+/Cogs/__pycache__
+/Constants/__pycache__
+/Music_Player/__pycache__
+/Utils/__pycache__
