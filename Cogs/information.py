@@ -1,7 +1,7 @@
 from discord import message
 from discord.ext import commands
 from discord.embeds import Embed
-from colors import *
+from Constants.colors import *
 
 class Information(commands.Cog):
     def __init__(self, client):

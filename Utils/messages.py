@@ -1,5 +1,5 @@
 from discord.embeds import Embed
-from colors import *
+from Constants.colors import *
 
 def generate_new_song_message(title, channel, user):
     song = Embed(title="Music Player", description='A new song has been addded to the queue', color=dark_red)

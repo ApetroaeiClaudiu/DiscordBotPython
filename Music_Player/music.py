@@ -3,10 +3,10 @@ from discord.embeds import Embed
 from discord.ext import commands
 from discord import VoiceClient
 from discord.ext.commands import Context
-from constants import *
-from messages import *
-from file_management import *
-from youtube import *
+from Constants.constants import *
+from Utils.messages import *
+from Utils.file_management import *
+from Music_Player.youtube import *
 import discord
 import collections
 import asyncio

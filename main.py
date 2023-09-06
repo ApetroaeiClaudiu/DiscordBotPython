@@ -1,18 +1,15 @@
 from discord.ext import commands
-from information import Information
-from file_management import *
-from texts import Texts
-from music import Music
-from random_list import Random_list
+from Cogs.information import Information
+from Utils.file_management import *
+from Cogs.texts import Texts
+from Music_Player.music import Music
+from Cogs.random_list import Random_list
+from Utils.read_token import *
 import asyncio
 import discord
 
 intents = discord.Intents.default()
 intents.message_content = True
-
-token = ""
-with open("token.txt") as file:
-    token = file.read()
 
 bot = commands.Bot(
     command_prefix=commands.when_mentioned_or("!"),
@@ -32,6 +29,6 @@ async def main():
         await bot.add_cog(Texts(bot))
         await bot.add_cog(Information(bot))
         await bot.add_cog(Random_list(bot))
-        await bot.start(token)
+        await bot.start(read_token())
 
 asyncio.run(main())
