@@ -25,3 +25,8 @@ Use the command *!commandslist* to view every available command.
 2. Autoplaying songs does not send the *A song is playing* message
 3. Sending the *No more songs in the queue* message does not work as intended
 4. Weird characters don't work
+
+## Known issues:
+
+1. Data is persisted locally (when it comes to jokes etc.) instead of DB.
+2. Refactoring is always possible for improving.
